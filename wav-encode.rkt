@@ -1,4 +1,4 @@
-#lang racket/base
+#lang typed/racket/base
 
 ;; Simple WAVE encoder
 
@@ -6,7 +6,8 @@
 ;; http://ccrma.stanford.edu/courses/422/projects/WaveFormat/
 
 (provide write-wav)
-(require racket/sequence)
+(require racket/sequence
+         racket/math)
 
 ;; A WAVE file has 3 parts:
 ;;  - the RIFF header: identifies the file as WAVE
@@ -14,16 +15,24 @@
 ;;  - data subchunk
 
 ;; data : sequence of 32-bit unsigned integers
+(: write-wav ((Vectorof Integer)
+              [#:num-channels Integer]
+              [#:sample-rate Integer]
+              [#:bits-per-sample Integer]
+              -> Any))
 (define (write-wav data
                    #:num-channels    [num-channels    1] ; 1 = mono, 2 = stereo
                    #:sample-rate     [sample-rate     44100]
                    #:bits-per-sample [bits-per-sample 16])
-
+  
   (define bytes-per-sample (quotient bits-per-sample 8))
+  (: write-integer-bytes (case-> (Integer -> Exact-Nonnegative-Integer)
+                                 (Integer Integer -> Exact-Nonnegative-Integer)))
   (define (write-integer-bytes i [size 4])
     (write-bytes (integer->integer-bytes i size #f)))
+  (: data-subchunk-size : Integer)
   (define data-subchunk-size
-    (* (sequence-length data) num-channels (/ bits-per-sample 8)))
+    (* (sequence-length data) num-channels (exact-round (/ bits-per-sample 8))))
 
   ;; RIFF header
   (write-bytes #"RIFF")

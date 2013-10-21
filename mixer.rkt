@@ -2,7 +2,8 @@
 
 (require math/array)
 
-(provide mix)
+(provide mix
+         Weighted-Signal)
 
 ;; Weighted sum of signals, receives a list of lists (signal weight).
 ;; Shorter signals are repeated to match the length of the longest.
